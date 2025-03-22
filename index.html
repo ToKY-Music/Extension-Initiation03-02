@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>持続する外延のシミュレーション02</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let objects = [];
+        const maxObjects = 100; // 最大オブジェクト数
+        const minObjects = 5;
+        const growthRate = 0.3; // 成長速度調整
+        const spawnChance = 0.04; // 4%で新しい外延を発生
+
+        class Extent {
+            constructor(x, y, radius = 5, color = `hsl(${Math.random() * 360}, 100%, 70%)`) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.color = color;
+            }
+
+            grow() {
+                if (this.radius < 40) {
+                    this.radius += growthRate;
+                } else if (Math.random() < spawnChance) {
+                    spawnNewExtent(this.x, this.y);
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function spawnNewExtent(parentX, parentY) {
+            if (objects.length >= maxObjects) {
+                objects.shift(); // 最も古いオブジェクトを削除
+            }
+            const newX = parentX + (Math.random() * 60 - 30);
+            const newY = parentY + (Math.random() * 60 - 30);
+            objects.push(new Extent(newX, newY));
+        }
+
+        function update() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            objects.forEach(obj => {
+                obj.grow();
+                obj.draw();
+            });
+
+            if (objects.length < minObjects) {
+                objects.push(new Extent(Math.random() * canvas.width, Math.random() * canvas.height));
+            }
+            
+            requestAnimationFrame(update);
+        }
+
+        for (let i = 0; i < minObjects; i++) {
+            objects.push(new Extent(Math.random() * canvas.width, Math.random() * canvas.height));
+        }
+
+        update();
+    </script>
+</body>
+</html>
